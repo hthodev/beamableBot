@@ -1,0 +1,1 @@
+F12 -> Network -> chọn bất kỳ API -> Copy Cookie -> Paste // Mỗi dòng tương ứng với 1 tài khoản
