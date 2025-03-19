@@ -1,0 +1,1 @@
+http://user:password@port:ip // Nếu không sử dụng proxy thì bỏ trống
