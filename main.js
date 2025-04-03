@@ -3,7 +3,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import fetch from "node-fetch";
 import chalk from "chalk";
 import readline from 'readline/promises';
-
+import { parseHTML } from 'linkedom';
 
 // Helper Function: Logger
 function logger(message, level = "info") {
@@ -737,18 +737,83 @@ async function checkProxySpeed(agent) {
   }
 }
 
-async function dailyCheckIn(cookie, agent) {
+async function openBox(cookie, agent) {
   try {
-    const url = 'https://hub.beamable.network/modules/dailycheckin'
+    const url = 'https://hub.beamable.network/modules/profile/5456'
     headers.Cookie = cookie
-    headers["next-action"] = "d93df389f759877e49b020b7ff454db350580fc7"
+    headers["next-action"] = "7f1ddd18727e2bda9884d4f73c1ed2de315c9667cf"
     await fetch(url, {
       method: 'POST',
       headers,
       agent,
-      body: `[346,"dailycheckin"]`
+      body: "[5456,{\"path\":\"/profile/5456\"},1]"
     })
+    logger("Đã mở hộp daily", 'success')
+
+  } catch (error) {
+    logger(`Lỗi daily check-in: ${error.message}`, 'error')
+
+  }
+}
+
+async function regexFunction(text) {
+
+  
+}
+
+async function getNonce(cookie, agent) {
+  try {
+    const url = 'https://hub.beamable.network/modules/aprildailies'
+    headers.Cookie = cookie
+    const request = await fetch(url, {
+      method: 'GET',
+      headers,
+      agent,
+    })
+
+    const response = await request.text()
+    const text = response.slice(-400000);
+    const cleanedText = text.replace(/\\"/g, '"');
+    const regex = /"nonce":"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"/;
+    const match = cleanedText.match(regex);
+  
+    if (match) {
+      return match[1]
+    }
+    
+  } catch (error) {
+    logger(`Lỗi get nonce: ${error.message}`, 'error')
+  }
+}
+
+async function dailyCheckIn(cookie, agent) {
+  try {
+    const nonce = await getNonce(cookie, agent)
+    headers.Cookie = cookie
+    await fetch("https://hub.beamable.network/modules/aprildailies", {
+      "headers": {
+        "accept": "text/x-component",
+        "accept-language": "en-US,en;q=0.9",
+        "content-type": "text/plain;charset=UTF-8",
+        "next-action": "7fb84504b1af6fa4a015452e147da5ba17d2d03551",
+        "next-router-state-tree": "%5B%22%22%2C%7B%22children%22%3A%5B%5B%22host%22%2C%22hub.beamable.network%22%2C%22d%22%5D%2C%7B%22children%22%3A%5B%22modules%22%2C%7B%22children%22%3A%5B%5B%22moduleIdOrPath%22%2C%22aprildailies%22%2C%22d%22%5D%2C%7B%22children%22%3A%5B%22__PAGE__%22%2C%7B%7D%2C%22%2Fmodules%2Faprildailies%22%2C%22refresh%22%5D%7D%5D%7D%5D%7D%5D%7D%2Cnull%2Cnull%2Ctrue%5D",
+        "priority": "u=1, i",
+        "sec-ch-ua": "\"Chromium\";v=\"134\", \"Not:A-Brand\";v=\"24\", \"Google Chrome\";v=\"134\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "cookie": cookie,
+        "Referer": "https://hub.beamable.network/modules/aprildailies",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+      },
+      "body": `[467,\"${nonce}\",\"aprildailies\"]`,
+      "method": "POST"
+    });
+    
     logger("Đã daily check-in thành công", 'success')
+    await openBox(cookie, agent)
 
   } catch (error) {
     logger(`Lỗi daily check-in: ${error.message}`, 'error')
