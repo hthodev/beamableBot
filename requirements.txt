@@ -1,0 +1,2 @@
+cloudscraper
+colorama
